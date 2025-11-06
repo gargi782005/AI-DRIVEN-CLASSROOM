@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login Page</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .container {
+            background-color: #fff;
+            padding: 20px 40px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            width: 350px;
+        }
+        .container h2 {
+            margin-bottom: 20px;
+            color: #333;
+        }
+        .form-section {
+            display: none;
+        }
+        .form-section.active {
+            display: block;
+        }
+        .form-group {
+            margin-bottom: 15px;
+            text-align: left;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #555;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        .btn {
+            width: 100%;
+            padding: 10px;
+            background-color: #007BFF;
+            border: none;
+            color: white;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 10px;
+        }
+        .btn:hover {
+            background-color: #0056b3;
+        }
+        .toggle-btn-group {
+            margin-bottom: 20px;
+        }
+        .toggle-btn {
+            background-color: #e0e0e0;
+            border: none;
+            padding: 10px 15px;
+            cursor: pointer;
+            margin: 0 5px;
+            border-radius: 4px;
+        }
+        .toggle-btn.active {
+            background-color: #007BFF;
+            color: white;
+        }
+        .link {
+            display: block;
+            margin-top: 15px;
+            color: #007BFF;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Login</h2>
+        <div class="toggle-btn-group">
+            <button class="toggle-btn active" onclick="showForm('student')">Student</button>
+            <button class="toggle-btn" onclick="showForm('admin')">Admin</button>
+            <button class="toggle-btn" onclick="showForm('hod')">HOD</button>
+        </div>
+        <form id="student-form" class="form-section active" action="/login_student" method="post">
+            <div class="form-group">
+                <label for="student_email">Email:</label>
+                <input type="email" id="student_email" name="email" required>
+            </div>
+            <div class="form-group">
+                <label for="student_password">Password:</label>
+                <input type="password" id="student_password" name="password" required>
+            </div>
+            <button type="submit" class="btn">Login as Student</button>
+        </form>
+        <form id="admin-form" class="form-section" action="/login_admin" method="post">
+            <div class="form-group">
+                <label for="admin_email">Email:</label>
+                <input type="email" id="admin_email" name="email" required>
+            </div>
+            <div class="form-group">
+                <label for="admin_password">Password:</label>
+                <input type="password" id="admin_password" name="password" required>
+            </div>
+            <button type="submit" class="btn">Login as Admin</button>
+        </form>
+        <form id="hod-form" class="form-section" action="/login_hod" method="post">
+            <div class="form-group">
+                <label for="hod_email">Email:</label>
+                <input type="email" id="hod_email" name="email" required>
+            </div>
+            <div class="form-group">
+                <label for="hod_password">Password:</label>
+                <input type="password" id="hod_password" name="password" required>
+            </div>
+            <button type="submit" class="btn">Login as HOD</button>
+        </form>
+        <a href="/register" class="link">Don't have an account? Register here</a>
+    </div>
+    <script>
+        function showForm(userType) {
+            document.querySelectorAll('.form-section').forEach(form => {
+                form.classList.remove('active');
+            });
+            document.getElementById(userType + '-form').classList.add('active');
+            document.querySelectorAll('.toggle-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Student Dashboard | AI Behavior Analytics</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Poppins', sans-serif;
+      background-color: #f7f9fc;
+      color: #333;
+    }
+    header {
+      background-color: #1a2b6d;
+      color: white;
+      padding: 15px 30px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    header h1 {
+      font-size: 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .dropdown { position: relative; display: inline-block; }
+    .profile-btn { background: none; border: none; cursor: pointer; }
+    .profile-icon {
+      width: 40px; height: 40px; border-radius: 50%;
+      border: 2px solid white;
+    }
+    .dropdown-content {
+      display: none; position: absolute; right: 0;
+      background-color: white;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+      border-radius: 8px;
+      overflow: hidden; width: 200px;
+      text-align: center; z-index: 10;
+    }
+    .dropdown-content p { margin: 8px 0; color: #1a2b6d; }
+    .dropdown-content hr { margin: 5px 0; border: 0.5px solid #ddd; }
+    .dropdown-content a {
+      display: block; padding: 10px;
+      color: #333; text-decoration: none;
+      border-top: 1px solid #eee;
+    }
+    .dropdown-content a:hover { background-color: #f0f0f0; }
+    .dropdown:hover .dropdown-content { display: block; }
+
+    .dashboard {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 20px; padding: 30px;
+    }
+    .card {
+      background: white; border-radius: 12px;
+      padding: 20px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    .card h3 {
+      margin-top: 0; border-bottom: 1px solid #ddd;
+      padding-bottom: 8px; color: #1a2b6d;
+    }
+    .video-card video { width: 100%; border-radius: 8px; }
+    .notifications { grid-column: 1 / 2; }
+    .lecture-list { grid-column: 1 / 4; }
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+    th, td {
+      border: 1px solid #ddd; padding: 10px; text-align: left;
+    }
+    th { background-color: #1a2b6d; color: white; }
+    button.attend-btn {
+      background-color: #007bff; border: none;
+      color: white; padding: 6px 12px;
+      border-radius: 4px; cursor: pointer;
+    }
+    button.attend-btn:hover { background-color: #0056b3; }
+    .insight p { margin: 8px 0; }
+    .insight span { font-weight: bold; color: #1a2b6d; }
+
+    /* New Styles for Camera/Live Feed */
+    .live-lecture-section {
+      grid-column: 1 / 4; display: none; margin-top: 20px;
+    }
+    .live-content { display: flex; gap: 20px; }
+    .video-container { position: relative; flex: 1; min-width: 300px; }
+    #webcam-feed, #detection-canvas {
+      width: 100%; height: auto; border-radius: 8px;
+      transform: scaleX(-1);
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+    #detection-canvas {
+      position: absolute; top: 0; left: 0; z-index: 5;
+      width: 100%; height: 100%;
+    }
+    .live-analytics-card { flex: 1; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>AI-Driven Classroom Behavior Analytics</h1>
+    <div class="dropdown">
+      <button class="profile-btn">
+        <img src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png"
+             alt="Profile" class="profile-icon">
+      </button>
+      <div class="dropdown-content">
+        <p><strong>{{ username }}</strong></p>
+        <hr>
+        <a href="/logout">Logout</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="dashboard">
+
+    <!-- 🧑‍🏫 Classroom Videos -->
+    <div class="card video-card">
+      <h3>Classroom Videos</h3>
+      {% for video in videos %}
+        <video id="video{{ loop.index }}" controls>
+          <source src="{{ video.url }}" type="video/mp4" />
+        </video>
+        <p><strong>{{ video.title }}</strong></p>
+      {% endfor %}
+
+      <!-- Feedback Form -->
+      <div id="feedbackForm" style="display:none; margin-top:20px;">
+        <h3>Teacher Feedback Form</h3>
+        <form id="feedbackFormElement">
+          <input type="hidden" id="videoTitle" name="video_title" value="">
+          <textarea id="feedbackText" name="feedback"
+            rows="4" cols="50" placeholder="Write your feedback..."></textarea><br><br>
+          <button type="submit"
+            style="background-color:#1a2b6d;color:white;padding:8px 15px;
+                   border:none;border-radius:5px;cursor:pointer;">
+            Submit Feedback
+          </button>
+        </form>
+      </div>
+
+      <script>
+        // Detect when first video ends
+        const firstVideo = document.getElementById('video1');
+        if (firstVideo) {
+          firstVideo.addEventListener('ended', function() {
+            document.getElementById('feedbackForm').style.display = 'block';
+            document.getElementById('videoTitle').value = "{{ videos[0].title }}";
+          });
+        }
+
+        // Submit feedback via fetch
+        document.getElementById('feedbackFormElement').addEventListener('submit', async function(e) {
+          e.preventDefault();
+          const feedbackData = {
+            student_name: "{{ username }}",
+            video_title: document.getElementById('videoTitle').value,
+            feedback: document.getElementById('feedbackText').value
+          };
+          const response = await fetch('/submit_feedback', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(feedbackData)
+          });
+          const result = await response.json();
+          if (result.status === "success") {
+            alert("✅ Feedback submitted successfully!");
+            document.getElementById('feedbackForm').style.display = 'none';
+          } else {
+            alert("❌ Error submitting feedback!");
+          }
+        });
+      </script>
+
+      <!-- Button to View All Videos -->
+      <div style="text-align:center;margin-top:15px;">
+        <a href="{{ url_for('student_videos') }}">
+          <button style="background-color:#1a2b6d;color:white;border:none;
+                         padding:10px 20px;border-radius:6px;cursor:pointer;font-size:15px;">
+            View All Videos
+          </button>
+        </a>
+      </div>
+    </div>
+
+    <!-- 📊 Behavior Analytics -->
+    <div class="card">
+      <h3>Your Behavior Analytics</h3>
+      <canvas id="analyticsChart"></canvas>
+    </div>
+
+    <!-- 💡 Insights -->
+    <div class="card insight">
+      <h3>Insights</h3>
+      <p>Attention Level: <span>{{ session.get('focus_percent', '0') }}%</span></p>
+      <p>Participation: <span>Active</span></p>
+      <p>Emotion Trend: <span>Positive</span></p>
+    </p>
+    <br>
+    <br>
+     <div class="insights-section" style="background:#fff; padding:15px; border-radius:10px; box-shadow:0 2px 6px rgba(0,0,0,0.1);">
+    <h3>Attendance Insights</h3>
+    <p style="font-size:18px; color:#333;">
+       <p><strong>Overall Attendance: {{ attendance_percent }}%</strong></p>
+
+</div>
+
+
+    </div>
+
+    <!-- 🎥 Live Lecture Section -->
+    <div class="card live-lecture-section" id="live-lecture-section">
+      <h3>Live Lecture: <span id="live-lecture-title"></span></h3>
+      <div class="live-content">
+        <div class="video-container">
+          <video id="webcam-feed" width="640" height="480" autoplay playsinline muted></video>
+          <canvas id="detection-canvas" width="640" height="480"></canvas>
+          <button id="stop-camera-button" class="attend-btn"
+            style="background-color: #dc3545; margin-top: 10px;">End Attendance</button>
+        </div>
+
+        <div class="card live-analytics-card insight">
+          <h4>Your Live Behavior Analytics</h4>
+          <canvas id="liveEngagementChart"></canvas>
+          <p>Attention: <span id="live-attention-level">--</span></p>
+          <p>Emotion: <span id="live-emotion-trend">--</span></p>
+          <p>Participation: <span id="live-participation">--</span></p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 🧾 Online Lectures -->
+    <div class="card lecture-list">
+      <h3>Online Lectures</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Lecture Title</th>
+            <th>Date</th>
+            <th>Time</th>
+            <th>Status</th>
+            <th>Attend</th>
+          </tr>
+        </thead>
+       <tbody id="lectures-tbody">
+  {% for lecture in lectures %}
+    {% set status = attendance.get(lecture.id, 'Not Attended') %}
+    <tr>
+      <td>{{ lecture.title }}</td>
+      <td>{{ lecture.date }}</td>
+      <td>{{ lecture.time }}</td>
+      <td class="status-cell">{{ status }}</td>
+      <td>
+        {% if status == 'Attended' %}
+          <button class="attend-btn" disabled>Attended</button>
+        {% else %}
+          <a href="{{ url_for('attend', lecture_id=lecture.id) }}">
+            <button class="attend-btn">Attend</button>
+          </a>
+        {% endif %}
+      </td>
+    </tr>
+  {% endfor %}
+</tbody>
+
+      </table>
+    </div>
+  </main>
+
+  <!-- Chart.js Analytics -->
+  <script>
+async function refreshLectures() {
+    try {
+        const response = await fetch('/get_lectures');
+        const lectures = await response.json();
+        const tbody = document.getElementById('lectures-tbody');
+        tbody.innerHTML = ''; // clear current rows
+
+        lectures.forEach(lecture => {
+            const tr = document.createElement('tr');
+
+            tr.innerHTML = `
+                <td>${lecture.title}</td>
+                <td>${lecture.date}</td>
+                <td>${lecture.time}</td>
+                <td class="status-cell">${lecture.status}</td>
+                <td>
+                    ${lecture.status === 'Attended' 
+                        ? '<button class="attend-btn" disabled>Attended</button>'
+                        : '<a href="/attend/' + lecture.id + '"><button class="attend-btn">Attend</button></a>'
+                    }
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+    } catch (err) {
+        console.error('Error refreshing lectures:', err);
+    }
+}
+
+// Refresh every 5 seconds
+setInterval(refreshLectures, 5000);
+
+
+
+    const ctx = document.getElementById('analyticsChart');
+    const analyticsChart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: ['Attention', 'Emotion', 'Participation'],
+        datasets: [{
+          label: 'Engagement Score (%)',
+          data: [0, 0, 0],
+          backgroundColor: ['#283593', '#3949ab', '#5c6bc0']
+        }]
+      },
+      options: { scales: { y: { beginAtZero: true, max: 100 } } }
+    });
+
+    async function updateAnalyticsChart() {
+      try {
+        const response = await fetch('/get_focus_data');
+        const data = await response.json();
+        if (data.focus_percent !== undefined) {
+          analyticsChart.data.datasets[0].data[0] = data.focus_percent;
+          analyticsChart.data.datasets[0].data[1] = 80;
+          analyticsChart.data.datasets[0].data[2] = 90;
+          analyticsChart.update();
+          document.querySelector('.insight span').innerText = data.focus_percent.toFixed(2) + '%';
+        }
+      } catch (error) {
+        console.error('Error updating chart:', error);
+      }
+    }
+    setInterval(updateAnalyticsChart, 3000);
+
+    // 🔄 Auto-update attendance percent every 5 seconds
+async function refreshAttendancePercent() {
+  try {
+    const response = await fetch('/get_attendance_percent');
+    const data = await response.json();
+    const percentElement = document.querySelector('.insights-section p strong');
+    if (percentElement) {
+      percentElement.textContent = `Overall Attendance: ${data.attendance_percent}%`;
+    }
+  } catch (err) {
+    console.error('Error updating attendance percent:', err);
+  }
+}
+setInterval(refreshAttendancePercent, 5000);
+
+  </script>
+</body>
+</html>

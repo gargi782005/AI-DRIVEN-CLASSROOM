@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Attend Lecture | AI Behavior Analytics</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Poppins', sans-serif;
+      background-color: #f7f9fc;
+      text-align: center;
+      color: #1a2b6d;
+    }
+    header {
+      background-color: #1a2b6d;
+      color: white;
+      padding: 15px;
+      font-size: 20px;
+    }
+    .camera-container {
+      margin-top: 30px;
+    }
+    .camera-container img {
+      width: 60%;
+      border-radius: 10px;
+      border: 4px solid #1a2b6d;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+    }
+    .btn {
+      display: inline-block;
+      margin-top: 20px;
+      padding: 10px 20px;
+      background-color: #1a2b6d;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    .btn:hover {
+      background-color: #0d1b47;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    Lecture Attendance: {{ lecture_id }}
+  </header>
+
+  <div class="camera-container">
+    <h2>Hello, {{ username }} 👋</h2>
+    <p>Keep your face visible to mark attendance.</p>
+    <img src="{{ url_for('video_feed') }}" alt="Camera Feed">
+    <br>
+    <a href="{{ url_for('leave_attendance', lecture_id=lecture_id) }}">
+      <button class="btn">Leave Lecture</button>
+    </a>
+  </div>
+</body>
+</html>

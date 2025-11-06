@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Classroom Analytics</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        .button-group {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        .button-group a {
+            text-decoration: none;
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+        .button-group a:hover {
+            background-color: #0056b3;
+        }
+        .chart-container {
+            width: 90%;
+            max-width: 1000px;
+            margin: 30px auto;
+            background: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+        canvas {
+            margin: 20px 0;
+        }
+        /* Medium size pie chart */
+        .focus-chart-container {
+            max-width: 600px;
+            margin: 30px auto;
+        }
+         .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #ddd;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        .header h1 {
+            margin: 0;
+        }
+        .header a {
+            background-color: #397ce0;
+            color: white;
+            padding: 8px 15px;
+            border-radius: 4px;
+            text-decoration: none;
+        }
+        .header a:hover {
+            background-color: #397ce0;
+        }
+    </style>
+</head>
+<body>
+  <div class="container">
+        <div class="header">
+            <h1>Classroom Analytics</h1>
+    <a href="{{ url_for('hod_dashboard') }}">⬅ Back to Dashboard</a>
+        </div>
+
+
+<div class="chart-container">
+    <h3>Attendance %</h3>
+    <canvas id="attendanceChart"></canvas>
+</div>
+
+<div class="chart-container focus-chart-container">
+    <h3>Focus %</h3>
+    <canvas id="focusChart"></canvas>
+</div>
+
+<script>
+async function fetchAnalytics() {
+    try {
+        const response = await fetch('/get_student_analytics');
+        const data = await response.json();
+
+        const usernames = data.map(student => student.username);
+        const attendance = data.map(student => student.attendance_percent);
+        const focus = data.map(student => student.focus_percent);
+
+        // Attendance Bar Chart
+        const ctx1 = document.getElementById('attendanceChart').getContext('2d');
+        new Chart(ctx1, {
+            type: 'bar',
+            data: {
+                labels: usernames,
+                datasets: [{
+                    label: 'Attendance %',
+                    data: attendance,
+                    backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                scales: { 
+                    y: { beginAtZero: true, max: 100 } 
+                },
+                responsive: true,
+                plugins: { legend: { display: false } }
+            }
+        });
+
+        // Focus Pie Chart
+        const ctx2 = document.getElementById('focusChart').getContext('2d');
+        new Chart(ctx2, {
+            type: 'pie',
+            data: {
+                labels: usernames,
+                datasets: [{
+                    label: 'Focus %',
+                    data: focus,
+                    backgroundColor: [
+                        'rgba(255, 99, 132, 0.6)',
+                        'rgba(54, 162, 235, 0.6)',
+                        'rgba(255, 206, 86, 0.6)',
+                        'rgba(75, 192, 192, 0.6)',
+                        'rgba(153, 102, 255, 0.6)',
+                        'rgba(255, 159, 64, 0.6)',
+                        'rgba(199, 199, 199, 0.6)',
+                        'rgba(83, 102, 255, 0.6)'
+                    ],
+                    borderColor: 'rgba(255, 255, 255, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { position: 'right' },
+                    tooltip: { callbacks: { label: function(context) {
+                        return context.label + ': ' + context.parsed + '%';
+                    }}}
+                }
+            }
+        });
+
+    } catch (err) {
+        console.error('Error fetching analytics:', err);
+    }
+}
+
+fetchAnalytics();
+</script>
+
+</body>
+</html>

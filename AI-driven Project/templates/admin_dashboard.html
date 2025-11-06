@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard | AI Behavior Analytics</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+        body {
+            margin: 0;
+            font-family: "Segoe UI", Arial, sans-serif;
+            background-color: #f4f6f8;
+            overflow-x: hidden;
+        }
+
+        /* Header */
+        header {
+            background: #2c3e50;
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 25px;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            z-index: 100;
+        }
+        header h2 {
+            margin: 0;
+            font-size: 22px;
+        }
+        header .admin-info {
+            font-size: 16px;
+        }
+        header .admin-info i {
+            margin-right: 5px;
+        }
+        header .logout {
+            color: #fff;
+            text-decoration: none;
+            margin-left: 8px;
+            padding: 6px 10px;
+            border-radius: 4px;
+            background-color: #e74c3c;
+            font-weight: 500;
+        }
+        header .logout:hover {
+            background-color: #c0392b;
+        }
+
+        /* Sidebar */
+        .container {
+            display: flex;
+            margin-top: 60px;
+        }
+        nav {
+            width: 220px;
+            background: #34495e;
+            color: #fff;
+            height: calc(100vh - 60px);
+            padding-top: 20px;
+            position: fixed;
+            left: 0;
+            top: 60px;
+        }
+        nav a {
+            display: block;
+            color: white;
+            padding: 12px 20px;
+            text-decoration: none;
+            font-size: 15px;
+        }
+        nav a:hover,
+        nav a.active {
+            background: #16a085;
+        }
+        nav i {
+            margin-right: 10px;
+        }
+
+        /* Main Content */
+        main {
+            margin-left: 240px;
+            padding: 20px;
+            flex: 1;
+        }
+
+        /* Summary Cards */
+        .dashboard-cards {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-top: 20px;
+            margin-bottom: 30px;
+        }
+        .dashboard-cards .card {
+            flex: 1;
+            min-width: 220px;
+            background: #fff;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .dashboard-cards .card h3 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        .dashboard-cards .card p {
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        /* Charts and Table */
+        .charts, table {
+            margin-top: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        th, td {
+            border: 1px solid #ccc;
+            padding: 10px 12px;
+            text-align: center;
+        }
+        th {
+            background: #2c3e50;
+            color: #fff;
+        }
+        tr:nth-child(even) {
+            background: #f9f9f9;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h2>Admin Dashboard</h2>
+        <div class="admin-info">
+            <i class="fa fa-user"></i> {{ admin_name }}
+            <a href="/logout" class="logout">Logout</a>
+        </div>
+    </header>
+
+    <div class="container">
+        <nav>
+            <a href="#" class="active"><i class="fa fa-chart-line"></i> Dashboard</a>
+            <a href="{{ url_for('manage_users') }}"><i class="fa fa-users"></i> Manage Users</a>
+            <a href="{{ url_for('system_reports') }}"><i class="fa fa-video"></i> System Reports</a>
+            <a href="{{ url_for('settings') }}"><i class="fa fa-cogs"></i> Settings</a>
+        </nav>
+
+        <main>
+            <!-- ✅ Dashboard Cards Section -->
+            <div class="dashboard-cards">
+                <div class="card">
+                    <h3>Total Students</h3>
+                    <p style="color:#007bff;">{{ total_students }}</p>
+                </div>
+                <div class="card">
+                    <h3>Total HODs</h3>
+                    <p style="color:#28a745;">{{ total_hods }}</p>
+                </div>
+                <div class="card">
+                    <h3>Total Lectures</h3>
+                    <p style="color:#17a2b8;">{{ total_lectures }}</p>
+                </div>
+                <div class="card">
+                    <h3>Average Engagement</h3>
+                    <p style="color:#ffc107;">{{ avg_engagement }}%</p>
+                </div>
+            </div>
+
+            <!-- ✅ Recent Lecture Summary Table -->
+            <div class="charts">
+                <h3>Recent Lectures Summary</h3>
+                <table>
+                    <tr>
+                        <th>Student Name</th>
+                        <th>Lecture Name</th>
+                        <th>Uploaded By </th>
+                        <th>Engagement %</th>
+                        <th>Date</th>
+                    </tr>
+                    {% for lecture in lectures %}
+                    <tr>
+                        <td>{{ lecture[2] }}</td>
+                        <td>{{ lecture[0] }}</td>
+                        <td>{{ lecture[1] }}</td>
+                        <td>{{ lecture[3]|round(2) }}%</td>
+                        <td>{{ lecture[4] }}</td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="5">No lectures found</td></tr>
+                    {% endfor %}
+                </table>
+            </div>
+        </main>
+    </div>
+</body>
+</html>

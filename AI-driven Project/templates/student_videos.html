@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>All Classroom Videos</title>
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      background-color: #f5f7fa;
+      margin: 0;
+      padding: 0;
+    }
+
+    header {
+      background-color: #1a2b6d;
+      color: white;
+      padding: 15px 30px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 22px;
+    }
+
+    .video-gallery {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 20px;
+      padding: 30px;
+    }
+
+    .video-card {
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      padding: 15px;
+      text-align: center;
+    }
+
+    .video-card video {
+      width: 100%;
+      border-radius: 10px;
+      margin-bottom: 10px;
+    }
+
+    .back-btn {
+      background-color: #1a2b6d;
+      color: white;
+      padding: 10px 20px;
+      text-decoration: none;
+      border-radius: 6px;
+      margin: 20px 30px;
+      display: inline-block;
+    }
+
+    .back-btn:hover {
+      background-color: #0d1d4d;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>All Uploaded Classroom Videos</h1>
+    <a href="{{ url_for('dashboard') }}" class="back-btn">⬅ Back to Dashboard</a>
+  </header>
+
+  <div class="video-gallery">
+    {% for video in videos %}
+    <div class="video-card">
+      <video controls>
+        <source src="{{ video.url }}" type="video/mp4" />
+      </video>
+      <p><strong>{{ video.title }}</strong></p>
+    </div>
+    {% endfor %}
+  </div>
+</body>
+</html>
